@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Квантум ULTRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+    margin:0;
+    font-family:'Montserrat', sans-serif;
+    background:#fff;
+}
+
+/* HEADER */
+header {
+    display:flex;
+    justify-content:space-between;
+    padding:15px 20px;
+    border-bottom:1px solid #eee;
+    position:sticky;
+    top:0;
+    background:white;
+    z-index:1000;
+}
+
+.search {
+    padding:8px;
+    border:1px solid #ccc;
+}
+
+.btn {
+    background:#e63946;
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    cursor:pointer;
+}
+
+/* GRID */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    padding:20px;
+}
+
+.card {
+    border:1px solid #eee;
+    padding:15px;
+    transition:0.3s;
+    position:relative;
+}
+
+.card:hover {
+    transform:translateY(-8px);
+    box-shadow:0 15px 30px rgba(0,0,0,0.1);
+}
+
+.card img {width:100%}
+
+/* FAVORITE */
+.fav {
+    position:absolute;
+    top:10px;
+    right:10px;
+    cursor:pointer;
+}
+
+/* CART */
+.cart {
+    position:fixed;
+    right:-350px;
+    top:0;
+    width:300px;
+    height:100%;
+    background:white;
+    box-shadow:-5px 0 20px rgba(0,0,0,0.2);
+    padding:20px;
+    transition:0.4s;
+}
+
+.cart.open {right:0}
+
+/* TOAST */
+.toast {
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#333;
+    color:#fff;
+    padding:10px 20px;
+    opacity:0;
+    transition:0.3s;
+}
+
+.toast.show {opacity:1}
+
+/* MOBILE */
+@media(max-width:768px){
+    header {flex-direction:column; gap:10px;}
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <b>Квантум</b>
+
+    <input class="search" placeholder="Поиск..." oninput="search(this.value)">
+
+    <div>
+        ❤️ <span id="fav-count">0</span>
+        🛒 <span id="cart-count">0</span>
+        <button class="btn" onclick="toggleCart()">Открыть</button>
+    </div>
+</header>
+
+<section class="grid" id="products"></section>
+
+<!-- CART -->
+<div class="cart" id="cart">
+    <h2>Корзина</h2>
+    <div id="cart-items"></div>
+    <h3 id="total"></h3>
+</div>
+
+<div class="toast" id="toast">Добавлено!</div>
+
+<script>
+
+let products = [
+    {name:"MSI Katana 17 HX", price:159990, type:"gaming", img:"laptop.png"},
+    {name:"Quantum Air", price:89990, type:"office", img:"https://via.placeholder.com/300x200"}
+];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let fav = [];
+
+function render(list){
+    let html="";
+    list.forEach((p,i)=>{
+        html+=`
+        <div class="card">
+            <img src="${p.img}">
+            <h3>${p.name}</h3>
+            <p>${p.price} ₽</p>
+            <button class="btn" onclick="addToCart(${i})">Купить</button>
+            <div class="fav" onclick="addFav()">❤️</div>
+        </div>`;
+    });
+    document.getElementById('products').innerHTML=html;
+}
+
+function addToCart(i){
+    cart.push(products[i]);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCart();
+    toast("Добавлено в корзину");
+}
+
+function updateCart(){
+    document.getElementById('cart-count').innerText=cart.length;
+
+    let total=0, html="";
+    cart.forEach((p,i)=>{
+        total+=p.price;
+        html+=`<p>${p.name} - ${p.price} ₽ 
+        <button onclick="remove(${i})">❌</button></p>`;
+    });
+
+    document.getElementById('cart-items').innerHTML=html;
+    document.getElementById('total').innerText="Итого: "+total+" ₽";
+}
+
+function remove(i){
+    cart.splice(i,1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCart();
+}
+
+function toggleCart(){
+    document.getElementById('cart').classList.toggle('open');
+}
+
+function addFav(){
+    fav++;
+    document.getElementById('fav-count').innerText=fav;
+}
+
+function search(q){
+    let res = products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase()));
+    render(res);
+}
+
+function toast(text){
+    let t=document.getElementById('toast');
+    t.innerText=text;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+render(products);
+updateCart();
+
+</script>
+
+</body>
+</html>
